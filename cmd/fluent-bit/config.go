@@ -37,6 +37,7 @@ const (
 
 type config struct {
 	clientConfig  client.Config
+	id            string
 	logLevel      logging.Level
 	removeKeys    []string
 	labelKeys     []string
@@ -47,6 +48,8 @@ type config struct {
 
 func parseConfig(cfg ConfigGetter) (*config, error) {
 	res := &config{}
+
+	res.id = cfg.Get("Id")
 
 	res.clientConfig = defaultClientCfg
 

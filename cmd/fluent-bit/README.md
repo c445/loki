@@ -12,6 +12,7 @@ This plugin is implemented with [Fluent Bit's Go plugin](https://github.com/flue
 | --------------|-----------------------------------------------|-------------------------------------|
 | Url           | Url of loki server API endpoint.               | http://localhost:3100/loki/api/v1/push |
 | TenantID      | The tenant ID used by default to push logs to Loki. If omitted or empty it assumes Loki is running in single-tenant mode and no `X-Scope-OrgID` header is sent.               | "" |
+| Id            | Unique plugin ID (only required if multiple fluent-bit output plugin instances are used within the same fluent-bit process) | "" |
 | BatchWait     | Time to wait before send a log batch to Loki, full or not. (unit: sec) | 1 second   |
 | BatchSize     | Log batch size to send a log batch to Loki (unit: Bytes).    | 10 KiB (10 * 1024 Bytes) |
 | Labels        | labels for API requests.                       | {job="fluent-bit"}                    |
@@ -88,6 +89,10 @@ To configure the Loki output plugin add this section to fluent-bit.conf
 ```
 
 A full [example configuration file](fluent-bit.conf) is also available in this repository.
+
+### Running multiple plugin instances
+
+You can run multiple plugin instances in the same fluent-bit process, for example if you want to push to different Loki servers or route logs into diferent Loki tenant IDs. To do so, add additional `[Output]` sections. Each of them must have a unique `Id` value.
 
 ## Building
 

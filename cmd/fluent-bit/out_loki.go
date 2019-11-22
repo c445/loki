@@ -68,7 +68,7 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 	level.Info(paramLogger).Log("LabelKeys", fmt.Sprintf("%+v", conf.labelKeys))
 	level.Info(paramLogger).Log("LineFormat", conf.lineFormat)
 	level.Info(paramLogger).Log("DropSingleKey", conf.dropSingleKey)
-	level.Info(paramLogger).Log("LabelMapPath", fmt.Sprintf("%+v", conf.labeMap))
+	level.Info(paramLogger).Log("LabelMapPath", fmt.Sprintf("%+v", conf.labelMap))
 
 	plugin, err := newPlugin(conf, logger)
 	if err != nil {

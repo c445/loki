@@ -147,15 +147,25 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, _ *C.char) int {
 		}
 	}
 	if plugin.cfg.sortOutput {
+		level.Info(plugin.logger).Log("msg", "sorting loki output batch", "batch-size", len(records))
+
 		sort.Slice(records, func(i, j int) bool {
 			return records[i].timestamp.Before(records[j].timestamp)
 		})
+
+		failedRecords := 0
+		var lastErr error
 		for _, rec := range records {
 			err := plugin.sendRecord(rec.data, rec.timestamp)
 			if err != nil {
-				level.Error(plugin.logger).Log("msg", "error sending record to Loki", "error", err)
-				return output.FLB_ERROR
+				lastErr = err
+				failedRecords++
 			}
+		}
+		if failedRecords > 0 {
+			level.Error(plugin.logger).Log("msg", "error sending record(s) to Loki",
+				"total-records", len(records), "failed-records", failedRecords, "last-error", lastErr)
+			return output.FLB_ERROR
 		}
 	}
 

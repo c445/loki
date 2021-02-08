@@ -3,6 +3,7 @@ package main
 import (
 	"C"
 	"fmt"
+	"sort"
 	"time"
 	"unsafe"
 
@@ -81,6 +82,7 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 	level.Info(paramLogger).Log("cert_file", conf.clientConfig.Client.TLSConfig.CertFile)
 	level.Info(paramLogger).Log("key_file", conf.clientConfig.Client.TLSConfig.KeyFile)
 	level.Info(paramLogger).Log("insecure_skip_verify", conf.clientConfig.Client.TLSConfig.InsecureSkipVerify)
+	level.Info(paramLogger).Log("sort_output", conf.sortOutput)
 
 	plugin, err := newPlugin(conf, logger)
 	if err != nil {
@@ -94,6 +96,11 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 	plugins = append(plugins, plugin)
 
 	return output.FLB_OK
+}
+
+type recordWithTimestamp struct {
+	timestamp time.Time
+	data      map[interface{}]interface{}
 }
 
 //export FLBPluginFlushCtx
@@ -110,6 +117,7 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, _ *C.char) int {
 
 	dec := output.NewDecoder(data, int(length))
 
+	var records []recordWithTimestamp
 	for {
 		ret, ts, record = output.GetRecord(dec)
 		if ret != 0 {
@@ -128,10 +136,26 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, _ *C.char) int {
 			timestamp = time.Now()
 		}
 
-		err := plugin.sendRecord(record, timestamp)
-		if err != nil {
-			level.Error(plugin.logger).Log("msg", "error sending record to Loki", "error", err)
-			return output.FLB_ERROR
+		if plugin.cfg.sortOutput {
+			records = append(records, recordWithTimestamp{timestamp: timestamp, data: record})
+		} else {
+			err := plugin.sendRecord(record, timestamp)
+			if err != nil {
+				level.Error(plugin.logger).Log("msg", "error sending record to Loki", "error", err)
+				return output.FLB_ERROR
+			}
+		}
+	}
+	if plugin.cfg.sortOutput {
+		sort.Slice(records, func(i, j int) bool {
+			return records[i].timestamp.Before(records[j].timestamp)
+		})
+		for _, rec := range records {
+			err := plugin.sendRecord(rec.data, rec.timestamp)
+			if err != nil {
+				level.Error(plugin.logger).Log("msg", "error sending record to Loki", "error", err)
+				return output.FLB_ERROR
+			}
 		}
 	}
 

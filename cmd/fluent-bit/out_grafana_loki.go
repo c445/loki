@@ -126,14 +126,18 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, _ *C.char) int {
 
 		// Get timestamp
 		var timestamp time.Time
-		switch t := ts.(type) {
-		case output.FLBTime:
-			timestamp = ts.(output.FLBTime).Time
-		case uint64:
-			timestamp = time.Unix(int64(t), 0)
-		default:
-			level.Warn(plugin.logger).Log("msg", "timestamp isn't known format. Use current time.")
+		if plugin.cfg.overwriteTimestamp {
 			timestamp = time.Now()
+		} else {
+			switch t := ts.(type) {
+			case output.FLBTime:
+				timestamp = ts.(output.FLBTime).Time
+			case uint64:
+				timestamp = time.Unix(int64(t), 0)
+			default:
+				level.Warn(plugin.logger).Log("msg", "timestamp isn't known format. Use current time.")
+				timestamp = time.Now()
+			}
 		}
 
 		if plugin.cfg.sortOutput {

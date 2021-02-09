@@ -82,7 +82,7 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 	level.Info(paramLogger).Log("cert_file", conf.clientConfig.Client.TLSConfig.CertFile)
 	level.Info(paramLogger).Log("key_file", conf.clientConfig.Client.TLSConfig.KeyFile)
 	level.Info(paramLogger).Log("insecure_skip_verify", conf.clientConfig.Client.TLSConfig.InsecureSkipVerify)
-	level.Info(paramLogger).Log("sort_output", conf.sortOutput)
+	level.Info(paramLogger).Log("SortOutput", conf.sortOutput)
 
 	plugin, err := newPlugin(conf, logger)
 	if err != nil {

@@ -82,7 +82,7 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 	level.Info(paramLogger).Log("cert_file", conf.clientConfig.Client.TLSConfig.CertFile)
 	level.Info(paramLogger).Log("key_file", conf.clientConfig.Client.TLSConfig.KeyFile)
 	level.Info(paramLogger).Log("insecure_skip_verify", conf.clientConfig.Client.TLSConfig.InsecureSkipVerify)
-	level.Info(paramLogger).Log("SortOutput", conf.sortOutput)
+	level.Info(paramLogger).Log("SortOutput", conf.clientConfig.SortBatches)
 
 	plugin, err := newPlugin(conf, logger)
 	if err != nil {
@@ -136,7 +136,7 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, _ *C.char) int {
 			timestamp = time.Now()
 		}
 
-		if plugin.cfg.sortOutput {
+		if plugin.cfg.clientConfig.SortBatches {
 			records = append(records, recordWithTimestamp{timestamp: timestamp, data: record})
 		} else {
 			err := plugin.sendRecord(record, timestamp)
@@ -146,8 +146,9 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, _ *C.char) int {
 			}
 		}
 	}
-	if plugin.cfg.sortOutput {
-		level.Debug(plugin.logger).Log("msg", "sorting Loki output batch", "batch-size", len(records))
+	if plugin.cfg.clientConfig.SortBatches {
+		level.Debug(plugin.logger).Log("msg", "sorting Loki output batch",
+			"batch-size", len(records), "tenant-id", plugin.cfg.clientConfig.TenantID)
 		sort.Slice(records, func(i, j int) bool {
 			return records[i].timestamp.Before(records[j].timestamp)
 		})

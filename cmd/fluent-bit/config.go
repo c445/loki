@@ -51,7 +51,6 @@ type config struct {
 	lineFormat           format
 	dropSingleKey        bool
 	labelMap             map[string]interface{}
-	sortOutput           bool
 }
 
 func parseConfig(cfg ConfigGetter) (*config, error) {
@@ -213,9 +212,9 @@ func parseConfig(cfg ConfigGetter) (*config, error) {
 	sortOutput := cfg.Get("SortOutput")
 	switch sortOutput {
 	case falseStr, "":
-		res.sortOutput = false
+		res.clientConfig.SortBatches = false
 	case trueStr:
-		res.sortOutput = true
+		res.clientConfig.SortBatches = true
 	default:
 		return nil, fmt.Errorf("invalid boolean SortOutput: %v", sortOutput)
 	}

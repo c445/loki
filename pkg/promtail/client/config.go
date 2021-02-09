@@ -37,6 +37,9 @@ type Config struct {
 	// The tenant ID to use when pushing logs to Loki (empty string means
 	// single tenant mode)
 	TenantID string `yaml:"tenant_id"`
+
+	// SortBatches enables sorting entries in streams by timestamp before flushing them out in batches
+	SortBatches bool
 }
 
 // RegisterFlags with prefix registers flags where every name is prefixed by
@@ -53,6 +56,7 @@ func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 	f.Var(&c.ExternalLabels, prefix+"client.external-labels", "list of external labels to add to each log (e.g: --client.external-labels=lb1=v1,lb2=v2)")
 
 	f.StringVar(&c.TenantID, prefix+"client.tenant-id", "", "Tenant ID to use when pushing logs to Loki.")
+	f.BoolVar(&c.SortBatches, prefix+"client.sort-batches", false, "Sort batched entries by timestamp before flushing.")
 }
 
 // RegisterFlags registers flags.

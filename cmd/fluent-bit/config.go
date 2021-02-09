@@ -52,7 +52,6 @@ type config struct {
 	dropSingleKey        bool
 	labelMap             map[string]interface{}
 	sortOutput           bool
-	overwriteTimestamp   bool
 }
 
 func parseConfig(cfg ConfigGetter) (*config, error) {
@@ -219,16 +218,6 @@ func parseConfig(cfg ConfigGetter) (*config, error) {
 		res.sortOutput = true
 	default:
 		return nil, fmt.Errorf("invalid boolean SortOutput: %v", sortOutput)
-	}
-
-	overwriteTimestamp := cfg.Get("OverwriteTimestamp")
-	switch overwriteTimestamp {
-	case falseStr, "":
-		res.overwriteTimestamp = false
-	case trueStr:
-		res.overwriteTimestamp = true
-	default:
-		return nil, fmt.Errorf("invalid boolean OverwriteTimestamp: %v", overwriteTimestamp)
 	}
 
 	// enable loki plugin buffering

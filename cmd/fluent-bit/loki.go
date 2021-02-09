@@ -255,6 +255,6 @@ func createLine(records map[string]interface{}, f format) (string, error) {
 func newLogger(logLevel logging.Level) log.Logger {
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 	logger = level.NewFilter(logger, logLevel.Gokit)
-	logger = log.With(logger, "caller", log.Caller(3))
+	logger = log.With(logger, "time", log.DefaultTimestamp, "caller", log.Caller(3))
 	return logger
 }

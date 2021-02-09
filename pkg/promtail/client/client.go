@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sort"
 	"strconv"
 	"sync"
 	"time"
@@ -270,7 +271,27 @@ func (c *client) Chan() chan<- api.Entry {
 	return c.entries
 }
 
+func (c *client) sortBatchStreams(tenantID string, batch *batch) {
+	// Sort each stream individually by timestamp
+	numEntries := 0
+	unsortedStreams := 0
+	for _, stream := range batch.streams {
+		numEntries += len(stream.Entries)
+		sortFunc := func(i, j int) bool {
+			return stream.Entries[i].Timestamp.Before(stream.Entries[j].Timestamp)
+		}
+		isSorted := sort.SliceIsSorted(stream.Entries, sortFunc)
+		if !isSorted {
+			unsortedStreams += 1
+			sort.Slice(stream.Entries, sortFunc)
+		}
+	}
+	level.Debug(c.logger).Log("msg", "sorted batched streams", "tenant", tenantID, "num-streams", len(batch.streams), "total-entries", numEntries, "unsorted-streams", unsortedStreams)
+}
+
 func (c *client) sendBatch(tenantID string, batch *batch) {
+	c.sortBatchStreams(tenantID, batch)
+
 	buf, entriesCount, err := batch.encode()
 	if err != nil {
 		level.Error(c.logger).Log("msg", "error encoding batch", "error", err)

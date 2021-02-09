@@ -151,7 +151,7 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, _ *C.char) int {
 		}
 	}
 	if plugin.cfg.sortOutput {
-		level.Info(plugin.logger).Log("msg", "sorting loki output batch", "batch-size", len(records))
+		level.Debug(plugin.logger).Log("msg", "sorting loki output batch", "batch-size", len(records))
 
 		sort.Slice(records, func(i, j int) bool {
 			return records[i].timestamp.Before(records[j].timestamp)

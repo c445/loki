@@ -213,9 +213,9 @@ func parseConfig(cfg ConfigGetter) (*config, error) {
 
 	sortOutput := cfg.Get("SortOutput")
 	switch sortOutput {
-	case falseStr:
+	case falseStr, "":
 		res.sortOutput = false
-	case trueStr, "":
+	case trueStr:
 		res.sortOutput = true
 	default:
 		return nil, fmt.Errorf("invalid boolean SortOutput: %v", sortOutput)
